@@ -46,9 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         // Поддержка темной темы на уровне WebView
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            settings.setForceDark(WebSettings.FORCE_DARK_AUTO);
-        }
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+//            settings.setForceDark(WebSettings.FORCE_DARK_AUTO);
+//        }
 
         webView.setWebViewClient(new WebViewClient());
 

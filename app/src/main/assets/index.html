@@ -238,325 +238,334 @@ body.loaded {
     </div>
 </div>
 <script>
-    let db = JSON.parse(localStorage.getItem('weight_tracker_data') || '{"entries":[], "config":{"goal":"keep", "target":0}}');
-    let wChart, mChart, wAxisChart; // Добавили wAxisChart
-    let confirmMode = false;
-    let translations = {}; // Будет заполнено через initLanguage
+    var db;
+ // Безопасная загрузка базы данных
+ try {
+     var savedData = localStorage.getItem('weight_tracker_data');
+     db = savedData ? JSON.parse(savedData) : { "entries": [], "config": { "goal": "keep", "target": 0 } };
+ } catch (e) {
+     console.error("Ошибка доступа к LocalStorage:", e);
+     // Резервный пустой объект, чтобы приложение не "упало"
+     db = { "entries": [], "config": { "goal": "keep", "target": 0 } };
+ }
+     var wChart, mChart, wAxisChart; // Добавили wAxisChart
+     var confirmMode = false;
+     var translations = {}; // Будет заполнено через initLanguage
 
-    async function initLanguage() {
-        let lang = 'ru';
-        if (window.Android && window.Android.getLanguage) {
-            const fullLang = window.Android.getLanguage();
-            lang = fullLang.startsWith('ru') ? 'ru' : 'en';
-        }
-        try {
-            if (window.Android && window.Android.getTranslations) {
-                const jsonString = window.Android.getTranslations(lang);
-                translations = JSON.parse(jsonString);
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (translations[key]) {
-                        if (el.tagName === 'INPUT') el.placeholder = translations[key];
-                        else el.textContent = translations[key];
-                    }
-                });
-                renderUI();
-            }
-        } catch (e) { console.error("Language Error:", e); }
-    }
+     async function initLanguage() {
+         var lang = 'ru';
+         if (window.Android && window.Android.getLanguage) {
+             var fullLang = window.Android.getLanguage();
+             lang = fullLang.startsWith('ru') ? 'ru' : 'en';
+         }
+         try {
+             if (window.Android && window.Android.getTranslations) {
+                 var jsonString = window.Android.getTranslations(lang);
+                 translations = JSON.parse(jsonString);
+                 document.querySelectorAll('[data-i18n]').forEach(el => {
+                     var key = el.getAttribute('data-i18n');
+                     if (translations[key]) {
+                         if (el.tagName === 'INPUT') el.placeholder = translations[key];
+                         else el.textContent = translations[key];
+                     }
+                 });
+                 renderUI();
+             }
+         } catch (e) { console.error("Language Error:", e); }
+     }
 
-    function saveDB() { localStorage.setItem('weight_tracker_data', JSON.stringify(db)); }
+     function saveDB() { localStorage.setItem('weight_tracker_data', JSON.stringify(db)); }
 
-    function renderUI() {
-        if (!document.getElementById('wDate').value) document.getElementById('wDate').value = new Date().toISOString().split('T')[0];
-        document.querySelectorAll('.goal-btn').forEach(b => b.classList.remove('active'));
-        if(document.getElementById('g-' + db.config.goal)) document.getElementById('g-' + db.config.goal).classList.add('active');
-        document.getElementById('targetWeight').value = db.config.target || '';
-const unitKg = translations['unit_kg'] || 'kg';
-        const log = document.getElementById('log');
-        if (db.entries.length > 0) {
-            document.getElementById('histBox').style.display = 'block';
-            log.innerHTML = db.entries.slice().reverse().map(e => `
-                <div class="hist-item">
-                    <div>
-                        <div style="font-size:11px; font-weight:bold; color:var(--sub)">${e.date.split('-').reverse().join('.')}</div>
+     function renderUI() {
+         if (!document.getElementById('wDate').value) document.getElementById('wDate').value = new Date().toISOString().split('T')[0];
+         document.querySelectorAll('.goal-btn').forEach(b => b.classList.remove('active'));
+         if(document.getElementById('g-' + db.config.goal)) document.getElementById('g-' + db.config.goal).classList.add('active');
+         document.getElementById('targetWeight').value = db.config.target || '';
+            var unitKg = translations['unit_kg'] || 'kg';
+         var log = document.getElementById('log');
+         if (db.entries.length > 0) {
+             document.getElementById('histBox').style.display = 'block';
+             log.innerHTML = db.entries.slice().reverse().map(e => `
+                 <div class="hist-item">
+                     <div>
+                         <div style="font-size:11px; font-weight:bold; color:var(--sub)">${e.date.split('-').reverse().join('.')}</div>
 
-                        <div class="hist-val">${e.weight || '?'}  ${unitKg}</div>
-                        <div style="margin-top:4px">
-                            ${['waist','chest','hips','bicep'].map(f => e[f] ? `<span class="detail-tag">${translations[f] || f}: ${e[f]}</span>` : '').join('')}
-                        </div>
-                    </div>
-                    <button class="del-btn" onclick="manualDelete('${e.date}')">×</button>
-                </div>`).join('');
-        } else { document.getElementById('histBox').style.display = 'none'; }
-        updateTrendDisplay();
-        drawCharts();
-        document.body.classList.add('loaded');
-    }
+                         <div class="hist-val">${e.weight || '?'}  ${unitKg}</div>
+                         <div style="margin-top:4px">
+                             ${['waist','chest','hips','bicep'].map(f => e[f] ? `<span class="detail-tag">${translations[f] || f}: ${e[f]}</span>` : '').join('')}
+                         </div>
+                     </div>
+                     <button class="del-btn" onclick="manualDelete('${e.date}')">×</button>
+                 </div>`).join('');
+         } else { document.getElementById('histBox').style.display = 'none'; }
+         updateTrendDisplay();
+         drawCharts();
+         document.body.classList.add('loaded');
+     }
 
-function drawCharts() {
-    const weights = db.entries
-        .filter(e => e.weight)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+ function drawCharts() {
+     var weights = db.entries
+         .filter(e => e.weight)
+         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    if (weights.length === 0) return;
+     if (weights.length === 0) return;
 
-    const scrollContainer = document.getElementById('wScroll');
-    const wWrapper = document.getElementById('wWrapper');
-    const axisCanvas = document.getElementById('weightAxis');
-    const chartCanvas = document.getElementById('weightChart');
+     var scrollContainer = document.getElementById('wScroll');
+     var wWrapper = document.getElementById('wWrapper');
+     var axisCanvas = document.getElementById('weightAxis');
+     var chartCanvas = document.getElementById('weightChart');
 
-    const style = getComputedStyle(document.body);
-    const primaryColor = style.getPropertyValue('--primary').trim();
-    const textColor = style.getPropertyValue('--text').trim();
-    const subColor = style.getPropertyValue('--sub').trim();
+     var style = getComputedStyle(document.body);
+     var primaryColor = style.getPropertyValue('--primary').trim();
+     var textColor = style.getPropertyValue('--text').trim();
+     var subColor = style.getPropertyValue('--sub').trim();
 
-    // Цвета из твоей рабочей логики
-    const trendDown = '#4ade80'; // Зеленый (хорошо)
-    const trendUp = '#f87171';   // Красный (плохо)
-    const mintColor = primaryColor;
+     // Цвета из твоей рабочей логики
+     var trendDown = '#4ade80'; // Зеленый (хорошо)
+     var trendUp = '#f87171';   // Красный (плохо)
+     var mintColor = primaryColor;
 
-    // --- ТВОЯ РАБОЧАЯ ЛОГИКА ЦВЕТОВ ---
-    const pointColors = weights.map((e, idx) => {
-        const target = db.config.target || 0;
+     // --- ТВОЯ РАБОЧАЯ ЛОГИКА ЦВЕТОВ ---
+     var pointColors = weights.map((e, idx) => {
+         var target = db.config.target || 0;
 
-        // 1. Режим УДЕРЖАНИЕ (keep)
-        if (db.config.goal === 'keep' && target > 0) {
-            const diff = Math.abs(e.weight - target);
-            return diff > 0.4 ? trendUp : trendDown;
-        }
+         // 1. Режим УДЕРЖАНИЕ (keep)
+         if (db.config.goal === 'keep' && target > 0) {
+             var diff = Math.abs(e.weight - target);
+             return diff > 0.4 ? trendUp : trendDown;
+         }
 
-        // Для режимов Снижение и Набор сравниваем с предыдущим днем
-        if (idx === 0) return trendDown;
-        const dailyDiff = e.weight - weights[idx - 1].weight;
+         // Для режимов Снижение и Набор сравниваем с предыдущим днем
+         if (idx === 0) return trendDown;
+         var dailyDiff = e.weight - weights[idx - 1].weight;
 
-        // 2. Режим СНИЖЕНИЕ (lose)
-        if (db.config.goal === 'lose') {
-            return dailyDiff <= 0 ? trendDown : trendUp;
-        }
+         // 2. Режим СНИЖЕНИЕ (lose)
+         if (db.config.goal === 'lose') {
+             return dailyDiff <= 0 ? trendDown : trendUp;
+         }
 
-        // 3. Режим НАБОР (gain)
-        if (db.config.goal === 'gain') {
-            return dailyDiff >= 0 ? trendDown : trendUp;
-        }
+         // 3. Режим НАБОР (gain)
+         if (db.config.goal === 'gain') {
+             return dailyDiff >= 0 ? trendDown : trendUp;
+         }
 
-        return mintColor;
-    });
+         return mintColor;
+     });
 
-    // Расчет границ шкалы (строго целые числа)
-    const targetVal = parseFloat(db.config.target) || 0;
-    const allValues = weights.map(e => e.weight);
-    if (targetVal > 0) allValues.push(targetVal);
-    const minW = Math.floor(Math.min(...allValues) - 1);
-    const maxW = Math.ceil(Math.max(...allValues) + 1);
+     // Расчет границ шкалы (строго целые числа)
+     var targetVal = parseFloat(db.config.target) || 0;
+     var allValues = weights.map(e => e.weight);
+     if (targetVal > 0) allValues.push(targetVal);
+     var minW = Math.floor(Math.min(...allValues) - 1);
+     var maxW = Math.ceil(Math.max(...allValues) + 1);
 
-    const commonYAxis = {
-        min: minW, max: maxW,
-        grid: { display: false, drawBorder: false },
-        ticks: { color: subColor, font: { size: 11, weight: 'bold' }, stepSize: 1, precision: 0, padding: 5 }
-    };
+     var commonYAxis = {
+         min: minW, max: maxW,
+         grid: { display: false, drawBorder: false },
+         ticks: { color: subColor, font: { size: 11, weight: 'bold' }, stepSize: 1, precision: 0, padding: 5 }
+     };
 
-    if (wAxisChart) wAxisChart.destroy();
-    if (wChart) wChart.destroy();
+     if (wAxisChart) wAxisChart.destroy();
+     if (wChart) wChart.destroy();
 
-    // Левая шкала (вертикальная)
-    axisCanvas.width = 40;
-    axisCanvas.height = 240;
-    wAxisChart = new Chart(axisCanvas.getContext('2d'), {
-        type: 'line',
-        data: { labels: weights.map(e => e.date), datasets: [{ data: weights.map(e => e.weight), showLine: false, pointRadius: 0 }] },
-        options: {
-            responsive: false, maintainAspectRatio: false,
-            layout: { padding: { top: 40, bottom: 0 } },
-            plugins: { legend: { display: false }, tooltip: { enabled: false } },
-            scales: {
-                y: { ...commonYAxis, display: true, position: 'left', afterFit: (axis) => { axis.width = 40; } },
-                x: { display: true, ticks: { display: false }, grid: { display: false }, afterFit: (axis) => { axis.height = 30; } }
-            }
-        }
-    });
+     // Левая шкала (вертикальная)
+     axisCanvas.width = 40;
+     axisCanvas.height = 240;
+     wAxisChart = new Chart(axisCanvas.getContext('2d'), {
+         type: 'line',
+         data: { labels: weights.map(e => e.date), datasets: [{ data: weights.map(e => e.weight), showLine: false, pointRadius: 0 }] },
+         options: {
+             responsive: false, maintainAspectRatio: false,
+             layout: { padding: { top: 40, bottom: 0 } },
+             plugins: { legend: { display: false }, tooltip: { enabled: false } },
+             scales: {
+                 y: { ...commonYAxis, display: true, position: 'left', afterFit: (axis) => { axis.width = 40; } },
+                 x: { display: true, ticks: { display: false }, grid: { display: false }, afterFit: (axis) => { axis.height = 30; } }
+             }
+         }
+     });
 
-    // Основной график
-    const chartWidth = Math.max(weights.length * 60, scrollContainer.clientWidth);
-    wWrapper.style.width = chartWidth + 'px';
-    chartCanvas.height = 240;
+     // Основной график
+     var chartWidth = Math.max(weights.length * 60, scrollContainer.clientWidth);
+     wWrapper.style.width = chartWidth + 'px';
+     chartCanvas.height = 240;
 
-    wChart = new Chart(chartCanvas.getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: weights.map(e => e.date.split('-').reverse().join('.').substring(0, 5)),
-            datasets: [{
-                data: weights.map(e => e.weight),
-                borderColor: primaryColor,
-                borderWidth: 1,
-                tension: 0.3,
-                fill: true,
-                backgroundColor: primaryColor + '45',
-                pointRadius: 6,
-                pointBackgroundColor: pointColors, // Применяем рассчитанные цвета
-                pointBorderColor: primaryColor,
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 40, bottom: 0, right: 20 } },
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { ...commonYAxis, ticks: { display: false }, afterFit: (axis) => { axis.width = 0; } },
-                x: { grid: { display: false }, ticks: { color: subColor, font: { size: 10 }, maxRotation: 0 }, afterFit: (axis) => { axis.height = 30; } }
-            }
-        },
-        plugins: [{
-            afterDatasetsDraw: (chart) => {
-                const { ctx, chartArea: { right }, scales: { y } } = chart;
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.font = 'bold 11px sans-serif';
-                ctx.fillStyle = textColor;
-                chart.getDatasetMeta(0).data.forEach((point, index) => {
-                    const val = chart.data.datasets[0].data[index];
-                    if (val) ctx.fillText(val, point.x, point.y - 12);
-                });
+     wChart = new Chart(chartCanvas.getContext('2d'), {
+         type: 'line',
+         data: {
+             labels: weights.map(e => e.date.split('-').reverse().join('.').substring(0, 5)),
+             datasets: [{
+                 data: weights.map(e => e.weight),
+                 borderColor: primaryColor,
+                 borderWidth: 1,
+                 tension: 0.3,
+                 fill: true,
+                 backgroundColor: primaryColor + '45',
+                 pointRadius: 6,
+                 pointBackgroundColor: pointColors, // Применяем рассчитанные цвета
+                 pointBorderColor: primaryColor,
+                 pointBorderWidth: 2
+             }]
+         },
+         options: {
+             responsive: true, maintainAspectRatio: false,
+             layout: { padding: { top: 40, bottom: 0, right: 20 } },
+             plugins: { legend: { display: false } },
+             scales: {
+                 y: { ...commonYAxis, ticks: { display: false }, afterFit: (axis) => { axis.width = 0; } },
+                 x: { grid: { display: false }, ticks: { color: subColor, font: { size: 10 }, maxRotation: 0 }, afterFit: (axis) => { axis.height = 30; } }
+             }
+         },
+         plugins: [{
+             afterDatasetsDraw: (chart) => {
+                 var { ctx, chartArea: { right }, scales: { y } } = chart;
+                 ctx.save();
+                 ctx.textAlign = 'center';
+                 ctx.font = 'bold 11px sans-serif';
+                 ctx.fillStyle = textColor;
+                 chart.getDatasetMeta(0).data.forEach((point, index) => {
+                     var val = chart.data.datasets[0].data[index];
+                     if (val) ctx.fillText(val, point.x, point.y - 12);
+                 });
 
-                if (targetVal > 0) {
-                    const yPos = y.getPixelForValue(targetVal);
-                    ctx.beginPath();
-                    ctx.setLineDash([5, 5]);
-                    ctx.strokeStyle = primaryColor + '66';
-                    ctx.lineWidth = 1.5;
-                    ctx.moveTo(0, yPos); ctx.lineTo(right, yPos);
-                    ctx.stroke();
-                }
-                ctx.restore();
-            }
-        }]
-    });
+                 if (targetVal > 0) {
+                     var yPos = y.getPixelForValue(targetVal);
+                     ctx.beginPath();
+                     ctx.setLineDash([5, 5]);
+                     ctx.strokeStyle = primaryColor + '66';
+                     ctx.lineWidth = 1.5;
+                     ctx.moveTo(0, yPos); ctx.lineTo(right, yPos);
+                     ctx.stroke();
+                 }
+                 ctx.restore();
+             }
+         }]
+     });
 
-    setTimeout(() => { scrollContainer.scrollLeft = 99999; }, 50);
+     setTimeout(() => { scrollContainer.scrollLeft = 99999; }, 50);
 
 
-    // Отрисовка замеров (если функция есть)
-    if (typeof renderMeasuresChart === 'function') renderMeasuresChart();
-}
-    function renderMeasuresChart() {
-        const mType = document.getElementById('measureType').value;
-        const measures = db.entries.filter(e => e[mType]);
-        const mCtx = document.getElementById('measureChart').getContext('2d');
-        if (mChart) mChart.destroy();
-        if (measures.length > 0) {
-            mChart = new Chart(mCtx, {
-                type: 'line',
-                data: {
-                    labels: measures.map(e => e.date.split('-').reverse().join('.').substring(0,5)),
-                    datasets: [{ data: measures.map(e => e[mType]), borderColor: '#A0F6B1', tension: 0.4, pointRadius: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } } }
-            });
-        }
-    }
+     // Отрисовка замеров (если функция есть)
+     if (typeof renderMeasuresChart === 'function') renderMeasuresChart();
+ }
+     function renderMeasuresChart() {
+         var mType = document.getElementById('measureType').value;
+         var measures = db.entries.filter(e => e[mType]);
+         var mCtx = document.getElementById('measureChart').getContext('2d');
+         if (mChart) mChart.destroy();
+         if (measures.length > 0) {
+             mChart = new Chart(mCtx, {
+                 type: 'line',
+                 data: {
+                     labels: measures.map(e => e.date.split('-').reverse().join('.').substring(0,5)),
+                     datasets: [{ data: measures.map(e => e[mType]), borderColor: '#A0F6B1', tension: 0.4, pointRadius: 4 }]
+                 },
+                 options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } } }
+             });
+         }
+     }
 
-    // Вспомогательные функции
-    function updateTrendDisplay() {
-        const entries = db.entries.filter(e => e.weight);
-        const el = document.getElementById('trendDisplay');
-        if (entries.length < 2) { el.innerText = translations['trend-analysis'] || "..."; return; }
-        const last = entries[entries.length - 1];
-        const avg = entries.slice(-8, -1).reduce((s, e) => s + e.weight, 0) / Math.max(1, entries.slice(-8, -1).length);
-        const diff = last.weight - avg;
-        if (Math.abs(diff) < 0.1) { el.innerText = translations['trend-stable']; el.style.color = "var(--sub)"; }
-        else if (diff > 0) { el.innerText = translations['trend-up']; el.style.color = "#f87171"; }
-        else { el.innerText = translations['trend-down']; el.style.color = "#4ade80"; }
-    }
+     // Вспомогательные функции
+     function updateTrendDisplay() {
+         var entries = db.entries.filter(e => e.weight);
+         var el = document.getElementById('trendDisplay');
+         if (entries.length < 2) { el.innerText = translations['trend-analysis'] || "..."; return; }
+         var last = entries[entries.length - 1];
+         var avg = entries.slice(-8, -1).reduce((s, e) => s + e.weight, 0) / Math.max(1, entries.slice(-8, -1).length);
+         var diff = last.weight - avg;
+         if (Math.abs(diff) < 0.1) { el.innerText = translations['trend-stable']; el.style.color = "var(--sub)"; }
+         else if (diff > 0) { el.innerText = translations['trend-up']; el.style.color = "#f87171"; }
+         else { el.innerText = translations['trend-down']; el.style.color = "#4ade80"; }
+     }
 
-    window.manualDelete = function(date) { db.entries = db.entries.filter(e => e.date !== date); saveDB(); renderUI(); };
+     window.manualDelete = function(date) { db.entries = db.entries.filter(e => e.date !== date); saveDB(); renderUI(); };
 
-    function setGoal(g) { db.config.goal = g; saveDB(); renderUI(); }
+     function setGoal(g) { db.config.goal = g; saveDB(); renderUI(); }
 
-    function handleSaveClick() {
-        const date = document.getElementById('wDate').value;
-        if (!date) return;
-        db.config.target = parseFloat(document.getElementById('targetWeight').value) || 0;
-        let entry = db.entries.find(e => e.date === date) || { date };
-        if (document.getElementById('wVal').value) entry.weight = parseFloat(document.getElementById('wVal').value);
-        ['waist', 'chest', 'hips', 'bicep'].forEach(f => {
-            let v = document.getElementById('m' + f.charAt(0).toUpperCase() + f.slice(1)).value;
-            if (v) entry[f] = parseFloat(v);
-        });
-        if (!db.entries.find(e => e.date === date)) db.entries.push(entry);
-        db.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-        saveDB(); renderUI();
-    }
+     function handleSaveClick() {
+         var date = document.getElementById('wDate').value;
+         if (!date) return;
+         db.config.target = parseFloat(document.getElementById('targetWeight').value) || 0;
+         var entry = db.entries.find(e => e.date === date) || { date };
+         if (document.getElementById('wVal').value) entry.weight = parseFloat(document.getElementById('wVal').value);
+         ['waist', 'chest', 'hips', 'bicep'].forEach(f => {
+             var v = document.getElementById('m' + f.charAt(0).toUpperCase() + f.slice(1)).value;
+             if (v) entry[f] = parseFloat(v);
+         });
+         if (!db.entries.find(e => e.date === date)) db.entries.push(entry);
+         db.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+         saveDB(); renderUI();
+     }
 
-function exportToCSV() {
-    if (!db.entries || db.entries.length === 0) return;
+ function exportToCSV() {
+     if (!db.entries || db.entries.length === 0) return;
 
-    let csvContent = "date,weight,waist,chest,hips,bicep\n";
-    db.entries.forEach(e => {
-        csvContent += `${e.date},${e.weight || ''},${e.waist || ''},${e.chest || ''},${e.hips || ''},${e.bicep || ''}\n`;
-    });
+     var csvContent = "date,weight,waist,chest,hips,bicep\n";
+     db.entries.forEach(e => {
+         csvContent += `${e.date},${e.weight || ''},${e.waist || ''},${e.chest || ''},${e.hips || ''},${e.bicep || ''}\n`;
+     });
 
-    // Проверяем, запущено ли в Android приложении
-    if (window.Android && window.Android.exportCSV) {
-        window.Android.exportCSV(csvContent, `weight_data_${new Date().toISOString().split('T')[0]}.csv`);
-    } else {
-        // Обычный браузерный способ (для тестов)
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'data.csv';
-        a.click();
-    }
-}
-// ИМПОРТ
-function showImportModal() {
-    document.getElementById('importModal').style.display = 'block';
-    document.getElementById('csvPasteArea').value = '';
-}
+     // Проверяем, запущено ли в Android приложении
+     if (window.Android && window.Android.exportCSV) {
+         window.Android.exportCSV(csvContent, `weight_data_${new Date().toISOString().split('T')[0]}.csv`);
+     } else {
+         // Обычный браузерный способ (для тестов)
+         var blob = new Blob([csvContent], { type: 'text/csv' });
+         var url = URL.createObjectURL(blob);
+         var a = document.createElement('a');
+         a.href = url;
+         a.download = 'data.csv';
+         a.click();
+     }
+ }
+ // ИМПОРТ
+ function showImportModal() {
+     document.getElementById('importModal').style.display = 'block';
+     document.getElementById('csvPasteArea').value = '';
+ }
 
-function processPastedCSV() {
-    const text = document.getElementById('csvPasteArea').value;
-    if (!text.trim()) return;
+ function processPastedCSV() {
+     var text = document.getElementById('csvPasteArea').value;
+     if (!text.trim()) return;
 
-    try {
-        const lines = text.split(/\r?\n/);
-        const dataLines = lines.slice(1); // Пропускаем заголовок (date,weight...)
+     try {
+        var lines = text.split(/\r?\n/);
+         var dataLines = lines.slice(1); // Пропускаем заголовок (date,weight...)
 
-        let count = 0;
-        dataLines.forEach(line => {
-            if (!line.trim()) return;
-            const [date, weight, waist, chest, hips, bicep] = line.split(',');
+        var count = 0;
+         dataLines.forEach(line => {
+             if (!line.trim()) return;
+            var [date, weight, waist, chest, hips, bicep] = line.split(',');
 
-            if (!date || date.length < 8) return; // Проверка на корректность даты
+             if (!date || date.length < 8) return; // Проверка на корректность даты
 
-            let entry = db.entries.find(item => item.date === date);
-            if (!entry) {
-                entry = { date };
-                db.entries.push(entry);
-            }
+             var entry = db.entries.find(item => item.date === date);
+             if (!entry) {
+                 entry = { date };
+                 db.entries.push(entry);
+             }
 
-            if (weight && !isNaN(weight)) entry.weight = parseFloat(weight);
-            if (waist && !isNaN(waist)) entry.waist = parseFloat(waist);
-            if (chest && !isNaN(chest)) entry.chest = parseFloat(chest);
-            if (hips && !isNaN(hips)) entry.hips = parseFloat(hips);
-            if (bicep && !isNaN(bicep)) entry.bicep = parseFloat(bicep);
-            count++;
-        });
+             if (weight && !isNaN(weight)) entry.weight = parseFloat(weight);
+             if (waist && !isNaN(waist)) entry.waist = parseFloat(waist);
+             if (chest && !isNaN(chest)) entry.chest = parseFloat(chest);
+             if (hips && !isNaN(hips)) entry.hips = parseFloat(hips);
+             if (bicep && !isNaN(bicep)) entry.bicep = parseFloat(bicep);
+             count++;
+         });
 
-        db.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-        saveDB();
-        renderUI();
+         db.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+         saveDB();
+         renderUI();
 
-        document.getElementById('importModal').style.display = 'none';
-        alert("Успешно загружено записей: " + count);
-    } catch (err) {
-        alert("Ошибка формата: проверьте, что вы скопировали CSV целиком");
-        console.error(err);
-    }
-}
+         document.getElementById('importModal').style.display = 'none';
+         alert("Успешно загружено записей: " + count);
+     } catch (err) {
+         alert("Ошибка формата: проверьте, что вы скопировали CSV целиком");
+         console.error(err);
+     }
+ }
 
-    window.onload = initLanguage;
+     window.onload = initLanguage;
 </script>
 </body>
 </html>
