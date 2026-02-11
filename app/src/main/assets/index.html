@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport">
     <title>WhatWeight 1.3.9</title>
 
     <script src="chart.min.js"></script>
@@ -131,49 +131,58 @@ body.loaded {
 
 <header style="display: flex; align-items: center; margin: 10px 0 20px 5px;">
     <div class="app-icon"> ️
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+        <svg height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg">
             <g transform="translate(5.04 5.04) scale(0.58)">
                 <path
-                        fill="var(--primary)"
-                        d="M24,4c0,0.55 -0.45,1 -1,1h-1v1c0,0.55 -0.45,1 -1,1s-1,-0.45 -1,-1V5h-1c-0.55,0 -1,-0.45 -1,-1c0,-0.55 0.45,-1 1,-1h1V2c0,-0.55 0.45,-1 1,-1s1,0.45 1,1v1h1C23.55,3 24,3.45 24,4zM21.52,8.95C21.83,9.91 22,10.94 22,12c0,5.52 -4.48,10 -10,10S2,17.52 2,12C2,6.48 6.48,2 12,2c1.5,0 2.92,0.34 4.2,0.94C16.08,3.27 16,3.62 16,4c0,1.35 0.9,2.5 2.13,2.87C18.5,8.1 19.65,9 21,9C21.18,9 21.35,8.98 21.52,8.95zM7,9.5C7,10.33 7.67,11 8.5,11S10,10.33 10,9.5S9.33,8 8.5,8S7,8.67 7,9.5zM16.31,14H7.69c-0.38,0 -0.63,0.42 -0.44,0.75C8.2,16.39 9.97,17.5 12,17.5s3.8,-1.11 4.75,-2.75C16.94,14.42 16.7,14 16.31,14zM17,9.5C17,8.67 16.33,8 15.5,8S14,8.67 14,9.5s0.67,1.5 1.5,1.5S17,10.33 17,9.5z"/>
+                        d="M24,4c0,0.55 -0.45,1 -1,1h-1v1c0,0.55 -0.45,1 -1,1s-1,-0.45 -1,-1V5h-1c-0.55,0 -1,-0.45 -1,-1c0,-0.55 0.45,-1 1,-1h1V2c0,-0.55 0.45,-1 1,-1s1,0.45 1,1v1h1C23.55,3 24,3.45 24,4zM21.52,8.95C21.83,9.91 22,10.94 22,12c0,5.52 -4.48,10 -10,10S2,17.52 2,12C2,6.48 6.48,2 12,2c1.5,0 2.92,0.34 4.2,0.94C16.08,3.27 16,3.62 16,4c0,1.35 0.9,2.5 2.13,2.87C18.5,8.1 19.65,9 21,9C21.18,9 21.35,8.98 21.52,8.95zM7,9.5C7,10.33 7.67,11 8.5,11S10,10.33 10,9.5S9.33,8 8.5,8S7,8.67 7,9.5zM16.31,14H7.69c-0.38,0 -0.63,0.42 -0.44,0.75C8.2,16.39 9.97,17.5 12,17.5s3.8,-1.11 4.75,-2.75C16.94,14.42 16.7,14 16.31,14zM17,9.5C17,8.67 16.33,8 15.5,8S14,8.67 14,9.5s0.67,1.5 1.5,1.5S17,10.33 17,9.5z"
+                        fill="var(--primary)"/>
             </g>
         </svg>
 
     </div>
-    <b style="font-size: 20px; flex-grow: 1;" ><span style="color:var(--primary)">[ </span><span data-i18n="title-app">What-Weight</span><span style="color:var(--primary)"> ]</span></b>
+    <b style="font-size: 20px; flex-grow: 1;"><span style="color:var(--primary)">[ </span><span
+            data-i18n="title-app">What-Weight</span><span style="color:var(--primary)"> ]</span></b>
     <div id="trendDisplay" style="font-size: 10px; font-weight: 900; color: var(--sub);">...</div>
 </header>
 
 <div class="card">
     <h2 data-i18n="card-input-title">Goal & Input</h2>
     <div class="goals">
-        <div onclick="setGoal('keep')" id="g-keep" class="goal-btn" data-i18n="goal-keep">MAINTAIN</div>
-        <div onclick="setGoal('lose')" id="g-lose" class="goal-btn" data-i18n="goal-lose">LOSE</div>
-        <div onclick="setGoal('gain')" id="g-gain" class="goal-btn" data-i18n="goal-gain">GAIN</div>
+        <div class="goal-btn" data-i18n="goal-keep" id="g-keep" onclick="setGoal('keep')">MAINTAIN
+        </div>
+        <div class="goal-btn" data-i18n="goal-lose" id="g-lose" onclick="setGoal('lose')">LOSE</div>
+        <div class="goal-btn" data-i18n="goal-gain" id="g-gain" onclick="setGoal('gain')">GAIN</div>
     </div>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <input type="number" id="targetWeight" data-i18n="placeholder-target" placeholder="Target kg" step="0.1">
-        <input type="number" id="wVal" data-i18n="placeholder-weight" placeholder="Weight kg" step="0.1" inputmode="decimal" oninput="validate(this, 30, 250)">
+        <input data-i18n="placeholder-target" id="targetWeight" placeholder="Target kg"
+               step="0.1" type="number">
+        <input data-i18n="placeholder-weight" id="wVal" inputmode="decimal" oninput="validate(this, 30, 250)"
+               placeholder="Weight kg" step="0.1" type="number">
     </div>
-    <input type="date" id="wDate">
+    <input id="wDate" type="date">
 
     <details>
-        <summary >📏 <span data-i18n="measurements-title">BODY MEASUREMENTS</span></summary>
+        <summary>📏 <span data-i18n="measurements-title">BODY MEASUREMENTS</span></summary>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <input type="number" id="mWaist"  data-i18n="placeholder-waist" placeholder="Waist" step="0.1" oninput="validate(this, 30, 180)">
-            <input type="number" id="mChest"  data-i18n="placeholder-chest" placeholder="Chest" step="0.1" oninput="validate(this, 30, 180)">
-            <input type="number" id="mHips"  data-i18n="placeholder-hips" placeholder="Hips" step="0.1" oninput="validate(this, 30, 180)">
-            <input type="number" id="mBicep"  data-i18n="placeholder-bicep" placeholder="Bicep" step="0.1" oninput="validate(this, 10, 80)">
+            <input data-i18n="placeholder-waist" id="mWaist" oninput="validate(this, 30, 180)" placeholder="Waist"
+                   step="0.1" type="number">
+            <input data-i18n="placeholder-chest" id="mChest" oninput="validate(this, 30, 180)" placeholder="Chest"
+                   step="0.1" type="number">
+            <input data-i18n="placeholder-hips" id="mHips" oninput="validate(this, 30, 180)" placeholder="Hips"
+                   step="0.1" type="number">
+            <input data-i18n="placeholder-bicep" id="mBicep" oninput="validate(this, 10, 80)" placeholder="Bicep"
+                   step="0.1" type="number">
         </div>
     </details>
-    <button onclick="handleSaveClick()" class="btn-main"   data-i18n="btn-save" id="saveBtn">SAVE</button>
+    <button class="btn-main" data-i18n="btn-save" id="saveBtn" onclick="handleSaveClick()">SAVE
+    </button>
 </div>
 
 <div class="card">
     <h2 data-i18n="chart-weight-title">Weight Dynamics</h2>
     <div class="chart-container-fixed">
-        <canvas id="weightAxis" class="y-axis-fixed"></canvas>
-        <div id="wScroll" class="scroll-container">
+        <canvas class="y-axis-fixed" id="weightAxis"></canvas>
+        <div class="scroll-container" id="wScroll">
             <div id="wWrapper">
                 <canvas id="weightChart"></canvas>
             </div>
@@ -183,14 +192,18 @@ body.loaded {
 
 <div class="card">
     <h2><span data-i18n="chart-measures-title">Measurements</span>
-        <select id="measureType" style="height:26px; font-size:10px; width:auto; border-radius:8px; margin:0; border:none; background:transparent; color:var(--primary);" onchange="renderUI()">
-            <option value="waist" data-i18n="placeholder-waist">Waist</option>
-            <option value="chest" data-i18n="placeholder-chest">Chest</option>
-            <option value="hips" data-i18n="placeholder-hips">Hips</option>
-            <option value="bicep" data-i18n="placeholder-bicep">Bicep</option>
+        <select id="measureType"
+                onchange="renderUI()"
+                style="height:26px; font-size:10px; width:auto; border-radius:8px; margin:0; border:none; background:transparent; color:var(--primary);">
+            <option data-i18n="placeholder-waist" value="waist">Waist</option>
+            <option data-i18n="placeholder-chest" value="chest">Chest</option>
+            <option data-i18n="placeholder-hips" value="hips">Hips</option>
+            <option data-i18n="placeholder-bicep" value="bicep">Bicep</option>
         </select>
     </h2>
-    <div class="chart-wrapper"><canvas id="measureChart"></canvas></div>
+    <div class="chart-wrapper">
+        <canvas id="measureChart"></canvas>
+    </div>
 </div>
 
 <div class="card" id="histBox" style="display:none">
@@ -200,20 +213,27 @@ body.loaded {
 
 
 <div class="card" style="margin-top: 20px;">
-    <h3 style="margin-top:0; margin-bottom: 15px; font-size: 16px; text-align: center;">Данные</h3>
+    <h3 data-i18n="data"
+        style="margin-top:0; margin-bottom: 15px; font-size: 16px; text-align: center;">Data</h3>
     <div style="display: flex; gap: 10px;">
-        <button onclick="exportToCSV()" class="data-btn">📤 Экспорт</button>
-        <button onclick="showImportModal()" class="data-btn">📥 Импорт</button>
+        <button class="data-btn" data-i18n="export" onclick="exportToCSV()">📤 Export</button>
+        <button class="data-btn" data-i18n="import" onclick="showImportModal()">📥 Import</button>
     </div>
 </div>
 
-<div id="importModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; padding:20px;">
+<div id="importModal"
+     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; padding:20px;">
     <div class="card" style="height:100%; display:flex; flex-direction:column;">
-        <h3 style="margin-top:0">Вставьте содержимое CSV</h3>
-        <textarea id="csvPasteArea" style="flex:1; width:100%; background:var(--bg); color:var(--text); border:1px solid var(--sub); border-radius:12px; padding:10px; font-family:monospace; font-size:12px;"></textarea>
+        <h3 data-i18n="insert-csv-data" style="margin-top:0">Insert CSV data</h3>
+        <textarea id="csvPasteArea"
+                  style="flex:1; width:100%; background:var(--bg); color:var(--text); border:1px solid var(--sub); border-radius:12px; padding:10px; font-family:monospace; font-size:12px;"></textarea>
         <div style="display:flex; gap:10px; margin-top:15px;">
-            <button onclick="processPastedCSV()" class="data-btn" style="background:var(--primary); color:#000;">Загрузить</button>
-            <button onclick="document.getElementById('importModal').style.display='none'" class="data-btn">Отмена</button>
+            <button class="data-btn" data-i18n="btn-load-data"
+                    onclick="processPastedCSV()" style="background:var(--primary); color:#000;">Load
+            </button>
+            <button class="data-btn"
+                    data-i18n="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel
+            </button>
         </div>
     </div>
 </div>
@@ -252,7 +272,7 @@ body.loaded {
         document.querySelectorAll('.goal-btn').forEach(b => b.classList.remove('active'));
         if(document.getElementById('g-' + db.config.goal)) document.getElementById('g-' + db.config.goal).classList.add('active');
         document.getElementById('targetWeight').value = db.config.target || '';
-
+const unitKg = translations['unit_kg'] || 'kg';
         const log = document.getElementById('log');
         if (db.entries.length > 0) {
             document.getElementById('histBox').style.display = 'block';
@@ -260,7 +280,8 @@ body.loaded {
                 <div class="hist-item">
                     <div>
                         <div style="font-size:11px; font-weight:bold; color:var(--sub)">${e.date.split('-').reverse().join('.')}</div>
-                        <div class="hist-val">${e.weight || '?'} кг</div>
+
+                        <div class="hist-val">${e.weight || '?'}  ${unitKg}</div>
                         <div style="margin-top:4px">
                             ${['waist','chest','hips','bicep'].map(f => e[f] ? `<span class="detail-tag">${translations[f] || f}: ${e[f]}</span>` : '').join('')}
                         </div>

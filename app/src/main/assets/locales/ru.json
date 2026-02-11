@@ -25,5 +25,12 @@
   "waist": "Талия",
   "chest": "Грудь",
   "hips": "Бедра",
-  "bicep": "Бицепс"
+  "bicep": "Бицепс",
+  "data": "Данные",
+  "export": "Экспорт",
+  "import": "Импорт",
+  "btn-load-data": "Загрузить",
+  "btn-cancel": "Отмена",
+  "insert-csv-data": "Вставьте содержимое CSV",
+  "unit_kg":"кг"
 }
