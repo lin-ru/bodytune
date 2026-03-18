@@ -41,4 +41,15 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    // Работа с БД Room
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-common:${roomVersion}")
+
+    // Графики (аналог Chart.js)
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Material Design компоненты
+    implementation("com.google.android.material:material:1.11.0")
 }

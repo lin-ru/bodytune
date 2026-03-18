@@ -1,14 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.AndroidStudio" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
+    <style name="Theme.BodyTune" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+<!--        <item name="colorPrimaryVariant">@color/primary_variant</item>-->
+<!--        <item name="colorOnPrimary">@color/white</item>-->
 
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="colorPrimary">@android:color/white</item>
-
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<!--        <item name="colorMeasurement">@color/point_color</item>-->
     </style>
-
-    <style name="Theme.AndroidStudio" parent="Base.Theme.AndroidStudio" />
 </resources>

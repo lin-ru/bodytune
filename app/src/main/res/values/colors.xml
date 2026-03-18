@@ -1,5 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primary">#2ECC71</color>
+    <color name="primary_darker">#27AE60</color>
+    <color name="bg">#F8FAFB</color>
+    <color name="card">#FFFFFF</color>
+    <color name="text_main">#2C3E50</color>
+    <color name="sub_text">#95A5A6</color>
+    <color name="input_bg">#F0F3F4</color>
+    <color name="border_color">#EAECEE</color>
+    <color name="point_color">#2ECC71</color>
+    <color name="text_goal_color">#48FA63</color>
+    <color name="text_goal_color_green">#27AE60</color>
+    <color name="text_goal_color_red">#ff0000</color>
+    <color name="point_color2">#A0F6B1</color>
+    <color name="text_goal_chart_color">#2E2E2E</color>
 </resources>

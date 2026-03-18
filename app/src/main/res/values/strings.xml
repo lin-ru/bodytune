@@ -1,3 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Body Tune</string>
+    <string name="card_input_title">Goal and iput</string>
+    <string name="goal_keep">Goal: Maintain weight⇳</string>
+    <string name="goal_lose">Goal: to lose weight⇘</string>
+    <string name="goal_gain">Goal: to gain weight⇗</string>
+    <string name="placeholder_target">Target weight</string>
+    <string name="placeholder_weight">Current weight</string>
+    <string name="placeholder_height">Height (cm)</string>
+    <string name="chart_weight_title">Weight dynamics</string>
+    <string name="btn_save">SAVE</string>
+    <string name="msg_saved">Data saved!</string>
+    <string name="msg_enter_weight">Enter your weight</string>
+    <string name="msg_enter_target_weight">Enter your target weight</string>
+    <string name="trend_text">ANALYZING...</string>
+    <string name="trend_text_lose">Weight is losing </string>
+    <string name="trend_text_gain">Weight is increasing ️</string>
+    <string name="trend_text_stable">Weight is stable️️</string>
+
+    <string name="unit_kg"> kg</string>
+    <string name="target_weight">Target weight: </string>
+    <string name="currentDate">Current Day</string>
+    <string name="goal">Please first enter your height, current weight and target weight️️ 🌟️</string>
+    <string name="chest">"Сhest: "</string>
+    <string name="waist">Waist:</string>
+    <string name="hips">Hips:</string>
+    <string name="bicep">Bicep</string>
+    <string name="unit_cm">cm.</string>
+    <string name="date_picker_title">Select the Date</string>
+    <string name="btn_next_date_desc">Next Day</string>
+    <string name="btn_prev_date_desc">Previous Day</string>
+    <string name="append_measurement">Body measurements (optional)</string>
+    <string name="bmi">BMI:</string>
+    <string name="logo" translatable="false">logo</string>
+    <string name="chest_graph_title">Chest</string>
+    <string name="waist_graph_title">Waist</string>
+    <string name="hips_graph_title">Hips</string>
+    <string name="bicep_graph_title">Bicep</string>
+    <string name="chest_hint">Chest circumference (cm)</string>
+    <string name="waist_hint">Waist circumference (cm)</string>
+    <string name="hips_hint">Hips circumference (cm)</string>
+    <string name="bicep_hint" >Biceps circumference (cm)</string>
+    <string name="start_text">Start entering your weight to see the graph</string>
+    <string name="export_text">Export completed</string>
+    <string name="import_completed">"Import complete. Records: "</string>
+    <string name="import_error">Error: The file is corrupted or has an invalid format.</string>
+    <string name="trend_text_start">Add at least two entries to calculate the trend.</string>
+    <string name="last_data_text">"(last data: "</string>
+    <string name="under_normal_weight">Underweight</string>
+    <string name="normal_weight">Normal weight</string>
+    <string name="upper_normal_weight">Overweight</string>
+    <string name="obesity">Obesity</string>
+    <string name="bmi_title">BMI</string>
+    <string name="export_btn">CSV Export</string>
+    <string name="import_btn">CSV Import</string>
+    <string name="no_data_for">No data for </string>
+    <string name="remaining"> remaining</string>
+    <string name="button_delete_desc">Delete</string>
 </resources>
