@@ -1,0 +1,5 @@
+A simple Android app for daily weight monitoring based on your chosen target weight: It displays your results on a color-coded trend chart: green means you're on track, red means you're off target. You can also track your chest, waist, hip, and bicep measurements (with measurement graphs).
+Supports Russian and English (selected depending on your system language).
+Doesn't require any permissions.
+Allows you to edit your entry for any day.
+Allows you to export/import your measurement history in CVS format (for example, to transfer between devices).
