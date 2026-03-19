@@ -2,4 +2,4 @@ A simple Android app for daily weight monitoring based on your chosen target wei
 Supports Russian and English (selected depending on your system language).
 Doesn't require any permissions.
 Allows you to edit your entry for any day.
-Allows you to export/import your measurement history in CVS format (for example, to transfer between devices).
+Allows you to export/import your measurement history in CSV format (for example, to transfer between devices).
