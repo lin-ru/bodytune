@@ -70,8 +70,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvCurrentGoalStatus;
     private WeightAdapter adapter;
     private String selectedDate;
-
-
     private EditText etChest, etWaist, etHips, etBicep;
     private LinearLayout layoutMeasurementsFields;
     private ImageView ivExpandIcon;
@@ -79,9 +77,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvBMIResult;
     ImageButton btnPrev, btnNext;
     private static final String TAG = "MainActivity";
-       private TextWatcher weightTextWatcher;
+    private TextWatcher weightTextWatcher;
     Typeface tf, sm;
-
     WeightEntry currentEntry;
 
     private static final int CREATE_FILE = 1;
@@ -104,10 +101,7 @@ public class MainActivity extends AppCompatActivity {
         lineChartBicep = findViewById(R.id.lineChartBicep);
         tvTrend = findViewById(R.id.tvTrend);
         tvSelectedDate = findViewById(R.id.tvSelectedDate);
-
-
         tvCurrentGoalStatus = findViewById(R.id.tvCurrentGoalStatus);
-
 
         setupChart();
 
@@ -133,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         layoutMeasurementsFields = findViewById(R.id.containerMeasurementsFields);
         ivExpandIcon = findViewById(R.id.ivExpandIconMeasurements);
 
-
         etHeight = findViewById(R.id.etHeight);
         tvBMIResult = findViewById(R.id.tvBMIResult);
 
@@ -152,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "changeDate called, TextWatcher" + ", selectedDate =" + selectedDate);
             }
         };
-
 
         etCurrentWeight.addTextChangedListener(weightTextWatcher);
 
@@ -184,21 +176,46 @@ public class MainActivity extends AppCompatActivity {
         setupCollapsibleGraph(R.id.headerMeasurements, findViewById(R.id.containerMeasurementsFields),
                 findViewById(R.id.ivExpandIconMeasurements), "show_measurements");
 
-
         findViewById(R.id.btnExport).setOnClickListener(v -> createCsvFile());
         findViewById(R.id.btnImport).setOnClickListener(v -> openCsvFile());
     }
 
+    private String formatDate(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return sdf.format(date);
+    }
+
+    private String determineGoalType(float weight, float target) {
+        float diff = weight - target;
+        if (diff > 0.6f) {
+            return "lose";
+        }
+        if (diff < -0.6f) {
+            return "gain";
+        }
+        return "maintain";
+    }
+
+    private Float parseNullableFloat(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        try {
+            return Float.parseFloat(trimmed.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
     private void setupCollapsibleGraph(int headerId, View container, ImageView icon, String prefKey) {
-        // 1. Читаем настройки: по умолчанию true (развернуто)
         boolean isVisible = getSharedPreferences("GraphSettings", MODE_PRIVATE).getBoolean(prefKey, true);
-
-        // 2. Устанавливаем начальное состояние
         container.setVisibility(isVisible ? View.VISIBLE : View.GONE);
         icon.setRotation(isVisible ? 180 : 0);
 
-        // 3. Вешаем слушатель на заголовок
         findViewById(headerId).setOnClickListener(v -> {
             boolean nowVisible = container.getVisibility() == View.VISIBLE;
 
@@ -210,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
                 icon.animate().rotation(180).setDuration(300).start();
             }
 
-            // Сохраняем состояние
             getSharedPreferences("GraphSettings", MODE_PRIVATE)
                     .edit()
                     .putBoolean(prefKey, !nowVisible)
@@ -222,9 +238,8 @@ public class MainActivity extends AppCompatActivity {
         chart.setBackgroundColor(getColor(R.color.card));
         chart.getDescription().setEnabled(false);
         chart.getLegend().setEnabled(false);
-        chart.setExtraBottomOffset(30f); // Место для двухстрочных дат
+        chart.setExtraBottomOffset(30f);
 
-        // Ось X
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setTextColor(getColor(R.color.sub_text));
@@ -232,29 +247,22 @@ public class MainActivity extends AppCompatActivity {
         xAxis.setDrawGridLines(true);
         xAxis.setGridColor(getColor(R.color.sub_text));
         xAxis.setGranularity(1f);
-
-
         xAxis.setLabelCount(7, false);
         xAxis.setTextSize(12f);
-        xAxis.setYOffset(10f); // Отступ текста от самой оси
-        // Назначаем твой MultiLineXAxisRenderer
+        xAxis.setYOffset(10f);
         chart.setXAxisRenderer(new MultiLineXAxisRenderer(
                 chart.getViewPortHandler(),
                 xAxis,
                 chart.getTransformer(YAxis.AxisDependency.LEFT)));
 
-        // Ось Y (левая)
         YAxis leftAxis = chart.getAxisLeft();
         leftAxis.setTypeface(tf);
         leftAxis.setTextColor(getColor(R.color.primary));
         leftAxis.setGridColor(getColor(R.color.sub_text));
         leftAxis.setDrawZeroLine(false);
 
-        // Отключаем правую ось
         chart.getAxisRight().setEnabled(false);
-
     }
-
 
     private void buildMeasurementChart(List<WeightEntry> entries, String measurementName, LineChart chart, String selectedDate) {
         List<Entry> chartPoints = new ArrayList<>();
@@ -291,14 +299,14 @@ public class MainActivity extends AppCompatActivity {
 
         if (chartPoints.isEmpty()) {
             chart.clear();
-            chart.setNoDataText(getString(R.string.no_data_for) + " "+ measurementName);
+            chart.setNoDataText(getString(R.string.no_data_for) + " " + measurementName);
             chart.invalidate();
             return;
         }
 
         applyUnifiedStyle(chart);
         LineDataSet dataSet = new LineDataSet(chartPoints, measurementName);
-       dataSet.setValueTextColor(getColor(R.color.primary));
+        dataSet.setValueTextColor(getColor(R.color.primary));
         dataSet.setCircleColor(getColor(R.color.point_color));
         dataSet.setLineWidth(1f);
         dataSet.setCircleRadius(6f);
@@ -306,7 +314,6 @@ public class MainActivity extends AppCompatActivity {
         dataSet.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
-                // Форматируем: если целое — без десятых, иначе с одним знаком
                 if (value == (int) value) {
                     return String.format(Locale.getDefault(), "%d см", (int) value);
                 } else {
@@ -319,13 +326,11 @@ public class MainActivity extends AppCompatActivity {
         LineData lineData = new LineData(dataSet);
         chart.setData(lineData);
 
-        chart.setVisibleXRangeMaximum(7f);   // Показываем примерно 7 дней
-        // === Настройки, аналогичные основному графику ===
-        chart.setDragEnabled(true);          // Включаем прокрутку
-        chart.setScaleEnabled(false);        // Отключаем масштабирование (как в основном)
+        chart.setVisibleXRangeMaximum(7f);
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(false);
         chart.setPinchZoom(false);
         chart.notifyDataSetChanged();
-        // Настройка осей (аналогично графику веса)
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setValueFormatter(new ValueFormatter() {
@@ -338,15 +343,14 @@ public class MainActivity extends AppCompatActivity {
                 return dayFormat.format(new Date(millis)) + "\n" + weekDayFormat.format(new Date(millis));
             }
         });
-        // Перемещаем к последней дате
-            try {
-                Date d = sdfUtc.parse(selectedDate);
-                if (d != null) {
-                    float selectedX = (float) TimeUnit.MILLISECONDS.toDays(d.getTime());
-                    chart.moveViewToX(selectedX - 3f);
-                }
-            } catch (Exception ignored) {
+        try {
+            Date d = sdfUtc.parse(selectedDate);
+            if (d != null) {
+                float selectedX = (float) TimeUnit.MILLISECONDS.toDays(d.getTime());
+                chart.moveViewToX(selectedX - 3f);
             }
+        } catch (Exception ignored) {
+        }
 
         chart.animateX(400);
         chart.invalidate();
@@ -356,24 +360,22 @@ public class MainActivity extends AppCompatActivity {
         String weightStr = etCurrentWeight.getText().toString();
         String heightStr = etHeight.getText().toString();
 
-        if (!weightStr.isEmpty() && !heightStr.isEmpty()) {
-            float weight = Float.parseFloat(weightStr);
-            float heightCm = Float.parseFloat(heightStr);
+        Float weight = parseNullableFloat(weightStr);
+        Float heightCm = parseNullableFloat(heightStr);
 
-            if (heightCm > 0) {
-                float heightM = heightCm / 100; // Переводим см в метры
+        if (weight != null && heightCm != null && heightCm > 0) {
+            float heightM = heightCm / 100f;
+            if (heightM > 0) {
                 float bmi = weight / (heightM * heightM);
-
-                // Выводим результат и категорию
                 tvBMIResult.setText(String.format(Locale.getDefault(), "ИМТ: %.1f \n(%s)", bmi, getBMICategory(bmi)));
+            } else {
+                tvBMIResult.setText(getString(R.string.bmi_title));
             }
         } else {
             tvBMIResult.setText(getString(R.string.bmi_title));
         }
 
-        // Сохранение
         getSharedPreferences("Settings", MODE_PRIVATE).edit().putString("user_height", heightStr).apply();
-
     }
 
     private String getBMICategory(float bmi) {
@@ -384,23 +386,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeDate(int amount) {
-
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             Date date = sdf.parse(selectedDate);
             if (date != null) {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(date);
-                cal.add(Calendar.DAY_OF_MONTH, amount); // Прибавляем или вычитаем дни
+                cal.add(Calendar.DAY_OF_MONTH, amount);
 
-                selectedDate = sdf.format(cal.getTime());
+                selectedDate = formatDate(cal.getTime());
                 tvSelectedDate.setText(selectedDate);
-
-                // Обновляем данные на экране
                 loadWeightForSelectedDate();
-
-
-                // Сдвигаем график к этой дате
 
                 float days = (float) (cal.getTimeInMillis() / (1000 * 60 * 60 * 24));
 
@@ -421,35 +417,28 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             currentEntry = db.weightDao().getEntryByDate(this.selectedDate);
 
-            // Находим последнюю запись в базе вообще, чтобы узнать цель
             WeightEntry lastKnownEntry = db.weightDao().getLastAnyEntry();
 
             WeightEntry trendCurrent;
             WeightEntry trendPrevious;
 
             if (currentEntry != null) {
-                // Если на этот день запись есть, сравниваем её с предыдущей
                 trendCurrent = currentEntry;
                 trendPrevious = db.weightDao().getLatestEntryBefore(this.selectedDate);
             } else {
                 trendCurrent = lastKnownEntry;
-                // Если на этот день записи НЕТ (пустой день),
-                // берем самую последнюю запись из всей базы
-                trendCurrent = db.weightDao().getLastAnyEntry();
                 if (trendCurrent != null) {
-                    // И сравниваем её с той, что была ПЕРЕД ней
                     trendPrevious = db.weightDao().getLatestEntryBefore(trendCurrent.date);
                 } else {
                     trendPrevious = null;
                 }
             }
 
-
             WeightEntry finalTrendCurrent = trendCurrent;
             runOnUiThread(() -> {
-                updateUIWithLoadedData(lastKnownEntry); // Выносим обновление полей в чистый метод
+                updateUIWithLoadedData(lastKnownEntry);
                 displayTrend(finalTrendCurrent, trendPrevious);
-                updateChart();//
+                updateChart();
             });
         }).start();
     }
@@ -460,9 +449,9 @@ public class MainActivity extends AppCompatActivity {
             String dateInfo = (currentEntry == null) ? getString(R.string.last_data_text) + current.date + ")" : "";
 
             if (diff < 0) {
-                tvTrend.setText(getString(R.string.trend_text_lose) + String.format(" (%.1f ", Math.abs(diff)) + getString(R.string.unit_kg)+")"+ dateInfo);
+                tvTrend.setText(getString(R.string.trend_text_lose) + String.format(" (%.1f ", Math.abs(diff)) + getString(R.string.unit_kg) + ")" + dateInfo);
             } else if (diff > 0) {
-                tvTrend.setText(getString(R.string.trend_text_gain) + String.format(" (+%.1f ", diff) + getString(R.string.unit_kg)+")"+ dateInfo);
+                tvTrend.setText(getString(R.string.trend_text_gain) + String.format(" (+%.1f ", diff) + getString(R.string.unit_kg) + ")" + dateInfo);
             } else {
                 tvTrend.setText(getString(R.string.trend_text_stable) + dateInfo);
             }
@@ -470,22 +459,20 @@ public class MainActivity extends AppCompatActivity {
             tvTrend.setText(getString(R.string.trend_text_start));
         }
     }
+
     private void updateUIWithLoadedData(WeightEntry lastKnownEntry) {
         etCurrentWeight.removeTextChangedListener(weightTextWatcher);
 
         if (currentEntry != null) {
             etCurrentWeight.setText(String.valueOf(currentEntry.weight));
             etTargetWeight.setText(String.valueOf(currentEntry.targetWeight));
-
         } else {
             etCurrentWeight.setText("");
-            // Предзаполняем поле "Целевой вес" последним известным значением для удобства
             if (lastKnownEntry != null) {
                 etTargetWeight.setText(String.valueOf(lastKnownEntry.targetWeight));
             }
         }
 
-        // 2. Логика СТАТУСА ЦЕЛИ (берем либо из текущей, либо из последней известной)
         WeightEntry entryForGoal = (currentEntry != null) ? currentEntry : lastKnownEntry;
 
         if (entryForGoal != null) {
@@ -505,22 +492,19 @@ public class MainActivity extends AppCompatActivity {
         calculateBMI();
     }
 
-
     private void showDatePicker() {
         Log.d(TAG, "showDatePicker called");
-        long selectionMillis = MaterialDatePicker.todayInUtcMilliseconds(); // По умолчанию сегодня
+        long selectionMillis = MaterialDatePicker.todayInUtcMilliseconds();
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // Работаем в UTC для корректности календаря
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = sdf.parse(selectedDate);
             if (date != null) {
                 selectionMillis = date.getTime();
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse selected date", e);
         }
-
 
         MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText(getString(R.string.date_picker_title))
@@ -528,49 +512,32 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         datePicker.addOnPositiveButtonClickListener(selection -> {
-//            Log.d(TAG, "DatePicker positive, selection=" + selection);
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             calendar.setTimeInMillis(selection);
-//            Log.d(TAG, "showDatePicker called before DatePicker + " + selectedDate + " + selectedDate");
             selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
             tvSelectedDate.setText(selectedDate);
-//            Log.d(TAG, "showDatePicker called after DatePicker + " + selectedDate + " + selectedDate");
             loadWeightForSelectedDate();
-//            Log.d(TAG, "showDatePicker called after DatePicker  loadWeightForSelectedDate(); + " + selectedDate + " + selectedDate");
             if (lineChartWeight.getData() != null && !lineChartWeight.getData().getDataSets().isEmpty()) {
-
                 float days = (float) TimeUnit.MILLISECONDS.toDays(selection);
-                // Смещаем на 3 дня влево, чтобы точка оказалась примерно в центре видимой области (7 дней)
                 lineChartWeight.moveViewToX(days - 3f);
                 if (lineChartChest.getData() != null) lineChartChest.moveViewToX(days - 3f);
                 if (lineChartWaist.getData() != null) lineChartWaist.moveViewToX(days - 3f);
                 if (lineChartHips.getData() != null) lineChartHips.moveViewToX(days - 3f);
                 if (lineChartBicep.getData() != null) lineChartBicep.moveViewToX(days - 3f);
-
             }
         });
         datePicker.show(getSupportFragmentManager(), "DATE_PICKER");
-
     }
 
-
     private void setupChart() {
-
-
-// Применяем к осям
         lineChartWeight.getXAxis().setTypeface(tf);
         lineChartWeight.getAxisLeft().setTypeface(sm);
 
-
         lineChartWeight.setBackgroundColor(getColor(R.color.card));
         lineChartWeight.setGridBackgroundColor(getColor(R.color.card));
-
-
-// Цвет осей и сетки
         lineChartWeight.getAxisLeft().setTextColor(getColor(R.color.primary));
         lineChartWeight.getAxisLeft().setGridColor(getColor(R.color.sub_text));
         lineChartWeight.getXAxis().setGridColor(getColor(R.color.sub_text));
-
 
         lineChartWeight.getDescription().setEnabled(false);
         lineChartWeight.getLegend().setEnabled(false);
@@ -588,16 +555,12 @@ public class MainActivity extends AppCompatActivity {
         xAxis.setTypeface(sm);
         xAxis.setGranularityEnabled(true);
         xAxis.setLabelCount(7, false);
-        // Устанавливаем кастомный отрисовщик для поддержки нескольких строк
         lineChartWeight.setXAxisRenderer(new MultiLineXAxisRenderer(
                 lineChartWeight.getViewPortHandler(),
                 lineChartWeight.getXAxis(),
-                lineChartWeight.getTransformer(YAxis.AxisDependency.LEFT)
-        ));
+                lineChartWeight.getTransformer(YAxis.AxisDependency.LEFT)));
 
-        // Увеличиваем отступ, чтобы две строки не вылезали за пределы экрана
         lineChartWeight.setExtraBottomOffset(30f);
-
         xAxis.setLabelCount(7, false);
         xAxis.setValueFormatter(new ValueFormatter() {
             private final SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM", Locale.getDefault());
@@ -617,61 +580,43 @@ public class MainActivity extends AppCompatActivity {
         lineChartWeight.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                // e.getX() — это количество дней, которое мы сохраняли
-                long millis = (long) e.getX() * 24 * 60 * 60 * 1000L;
-
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                try {
-                    Date date = sdf.parse(selectedDate);
-                } catch (ParseException ex) {
-                    throw new RuntimeException(ex);
-                }
                 loadWeightForSelectedDate();
             }
 
             @Override
             public void onNothingSelected() {
-
             }
         });
-
     }
-
 
     private void saveWeight() {
         String weightStr = etCurrentWeight.getText().toString();
         String targetStr = etTargetWeight.getText().toString();
 
-        if (weightStr.isEmpty()) {
+        Float weight = parseNullableFloat(weightStr);
+        if (weight == null || weight <= 0) {
             Toast.makeText(this, R.string.msg_enter_weight, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        float weight = Float.parseFloat(weightStr);
-        float target = targetStr.isEmpty() ? weight : Float.parseFloat(targetStr);
+        Float target = parseNullableFloat(targetStr);
+        if (target == null) {
+            target = weight;
+        }
 
-        float chest = etChest.getText().toString().isEmpty() ? 0 : Float.parseFloat(etChest.getText().toString());
-        float waist = etWaist.getText().toString().isEmpty() ? 0 : Float.parseFloat(etWaist.getText().toString());
-        float hips = etHips.getText().toString().isEmpty() ? 0 : Float.parseFloat(etHips.getText().toString());
-        float bicep = etBicep.getText().toString().isEmpty() ? 0 : Float.parseFloat(etBicep.getText().toString());
+        Float chest = parseNullableFloat(etChest.getText().toString());
+        Float waist = parseNullableFloat(etWaist.getText().toString());
+        Float hips = parseNullableFloat(etHips.getText().toString());
+        Float bicep = parseNullableFloat(etBicep.getText().toString());
+
+        if (chest == null) chest = 0f;
+        if (waist == null) waist = 0f;
+        if (hips == null) hips = 0f;
+        if (bicep == null) bicep = 0f;
 
         new Thread(() -> {
-// 1. Проверяем, есть ли уже записи в истории
             List<WeightEntry> allEntries = db.weightDao().getAllEntries();
-
-            // 2. Если записей нет (это первая запись), определяем цель автоматически
-            if (true) {
-                float diff = weight - target;
-
-                if (diff > 0.6f) {
-                    currentGoalType = "lose";
-                } else if (diff < -0.6f) {
-                    currentGoalType = "gain";
-                } else {
-                    currentGoalType = "maintain";
-                }
-            }
-
+            currentGoalType = determineGoalType(weight, target);
 
             WeightEntry entry = new WeightEntry(selectedDate, weight);
             entry.targetWeight = target;
@@ -707,7 +652,6 @@ public class MainActivity extends AppCompatActivity {
             List<Integer> circleColors = new ArrayList<>();
             AtomicReference<Float> lastTarget = new AtomicReference<>((float) 0);
             float lastWeight = 0;
-
             float minX = 0;
             float maxX = 0;
 
@@ -720,23 +664,16 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Date date = sdfUtc.parse(current.date);
                     if (date != null) {
-
                         float days = (float) TimeUnit.MILLISECONDS.toDays(date.getTime());
-
-
                         chartPoints.add(new Entry(days, current.weight));
                         if (days < minX) minX = days;
                         if (days > maxX) maxX = days;
-                    } else {
-
                     }
-
-
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Error parsing weight date: " + current.date, e);
                 }
 
-                if (current.targetWeight > 0) {
+                if (current.targetWeight != null && current.targetWeight > 0) {
                     lastTarget.set(current.targetWeight);
                 }
 
@@ -744,47 +681,37 @@ public class MainActivity extends AppCompatActivity {
                 if (i > 0) {
                     WeightEntry prev = entries.get(i - 1);
                     String goal = current.goalType != null ? current.goalType : "maintain";
-                    if (goal.equals("lose"))
-                        color = (current.weight < prev.weight) ?  getColor(R.color.text_goal_color_green) : getColor(R.color.text_goal_color_red);
-
-                    else if (goal.equals("gain"))
-                        color = (current.weight > prev.weight) ?  getColor(R.color.text_goal_color_green) : getColor(R.color.text_goal_color_red);
-                    else if (goal.equals("maintain"))
-                        color = (Math.abs(current.weight - lastTarget.get()) <= 0.4f) ?  getColor(R.color.text_goal_color_green) : getColor(R.color.text_goal_color_red);
+                    if (goal.equals("lose")) {
+                        color = (current.weight < prev.weight) ? getColor(R.color.text_goal_color_green) : getColor(R.color.text_goal_color_red);
+                    } else if (goal.equals("gain")) {
+                        color = (current.weight > prev.weight) ? getColor(R.color.text_goal_color_green) : getColor(R.color.text_goal_color_red);
+                    } else if (goal.equals("maintain")) {
+                        color = (Math.abs(current.weight - lastTarget.get()) <= 0.4f) ? getColor(R.color.text_goal_color_green) : getColor(R.color.text_goal_color_red);
+                    }
                 }
                 circleColors.add(color);
             }
 
-            // Определяем текст тренда
-
             int trendColor = getColor(R.color.text_goal_color_green);
-            String autoGoalType = currentGoalType; // Текущий тип цели по умолчанию
-
+            String autoGoalType = currentGoalType;
 
             if (lastTarget.get() > 0 && !entries.isEmpty() && entries.size() > 1) {
-
-                // Получаем последнюю запись для анализа текущего состояния
                 WeightEntry latestEntry = entries.get(entries.size() - 1);
                 WeightEntry prevEntry = entries.get(entries.size() - 2);
                 float currentActualWeight = latestEntry.weight;
                 float prevActualWeight = prevEntry.weight;
-                // Тип цели берем из последней записи или общей переменной
                 String goal = latestEntry.goalType != null ? latestEntry.goalType : "maintain";
-//
+
                 boolean goalPassed = false;
                 float remaining = 0;
 
-
-                // Расчет остатка и проверка достижения
                 switch (goal) {
                     case "maintain":
                         remaining = Math.abs(currentActualWeight - lastTarget.get());
                         if (remaining <= 0.4f) goalPassed = true;
                         break;
-
                     case "lose":
                         remaining = currentActualWeight - lastTarget.get();
-
                         if (remaining <= 0) goalPassed = true;
                         break;
                     case "gain":
@@ -793,27 +720,15 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
 
-
                 if (goalPassed) {
                     trendColor = ColorUtils.blendARGB(getColor(R.color.text_goal_color_green), getColor(R.color.text_main), 0.4f);
-                    // Устанавливаем режим сохранения веса
                     autoGoalType = "maintain";
-
                 } else {
-                    // Стандартная логика цветов (красный/зеленый тренд)
                     int lastPointColor = circleColors.get(circleColors.size() - 1);
                     trendColor = ColorUtils.blendARGB(lastPointColor, Color.BLACK, 0.4f);
-
-                    // Формируем строку с остатком
-//                    String remainingText = String.format(Locale.getDefault(), " (" + R.string.remaining + "%.1f" + R.string.unit_kg+")", remaining);
-
-
                 }
-
             }
 
-
-//            final String finalTrendText = trendMsg;
             final float finalLastTarget = lastTarget.get();
             final float finalLastWeight = lastWeight;
             final float finalMinX = minX;
@@ -821,14 +736,13 @@ public class MainActivity extends AppCompatActivity {
             final List<WeightEntry> history = new ArrayList<>(entries);
             Collections.reverse(history);
 
-            int finalTrendColor = trendColor;
+            final int finalTrendColor = trendColor;
             runOnUiThread(() -> {
-
                 adapter.setData(history);
                 if (history.isEmpty()) {
-                    lineChartWeight.clear(); // Полностью очищаем график
+                    lineChartWeight.clear();
                     lineChartWeight.setNoDataText(getString(R.string.start_text));
-                    tvTrend.setText(""); // Очищаем текст тренда
+                    tvTrend.setText("");
                     etCurrentWeight.setText("");
                     etTargetWeight.setText("");
                     currentGoalType = "";
@@ -841,8 +755,6 @@ public class MainActivity extends AppCompatActivity {
 
                 tvTrend.setTextColor(getColor(R.color.sub_text));
 
-
-                // Настройка данных графика
                 LineDataSet dataSet = new LineDataSet(chartPoints, "Weight");
                 dataSet.setCircleColors(circleColors);
                 dataSet.setCircleRadius(6f);
@@ -859,9 +771,7 @@ public class MainActivity extends AppCompatActivity {
                 lineChartWeight.setData(lineData);
 
                 YAxis leftAxis = lineChartWeight.getAxisLeft();
-
                 leftAxis.removeAllLimitLines();
-                // ВАЖНО: Сбрасываем ручные настройки границ, чтобы график не "обрезался"
                 leftAxis.resetAxisMaximum();
                 leftAxis.resetAxisMinimum();
                 lineChartWeight.notifyDataSetChanged();
@@ -875,22 +785,17 @@ public class MainActivity extends AppCompatActivity {
                     ll.setTextSize(12f);
                     ll.setTextColor(getColor(R.color.text_goal_chart_color));
                     leftAxis.addLimitLine(ll);
-
-                    // Включаем отображение линии ПОЗАДИ данных, чтобы она не перекрывала точки
                     leftAxis.setDrawLimitLinesBehindData(true);
 
                     float currentMax = leftAxis.getAxisMaximum();
                     float currentMin = leftAxis.getAxisMinimum();
 
-                    // Если цель выше, чем самый высокий вес на графике, поднимаем потолок
                     if (finalLastTarget >= currentMax) {
                         leftAxis.setAxisMaximum(finalLastTarget + 2f);
                     }
-                    // Если цель ниже, чем самый низкий вес, опускаем пол
                     if (finalLastTarget <= currentMin) {
                         leftAxis.setAxisMinimum(finalLastTarget - 2f);
                     }
-
                 }
 
                 if (!chartPoints.isEmpty()) {
@@ -899,18 +804,15 @@ public class MainActivity extends AppCompatActivity {
                     lineChartWeight.setVisibleXRangeMaximum(7f);
                 }
 
-                // Скролл к выбранной дате
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                     Date d = sdf.parse(selectedDate);
                     if (d != null) {
                         float selectedX = (float) TimeUnit.MILLISECONDS.toDays(d.getTime());
                         lineChartWeight.moveViewToX(selectedX - 3f);
-
-
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Error moving chart to selected date", e);
                 }
 
                 buildMeasurementChart(entries, "chest", lineChartChest, selectedDate);
@@ -920,11 +822,9 @@ public class MainActivity extends AppCompatActivity {
 
                 lineChartWeight.animateX(400);
                 lineChartWeight.invalidate();
-//                updateGoalButtonsUI(currentGoalType);
-                });
+            });
         }).start();
     }
-
 
     private class WeightAdapter extends RecyclerView.Adapter<WeightAdapter.ViewHolder> {
         private List<WeightEntry> historyList;
@@ -945,15 +845,13 @@ public class MainActivity extends AppCompatActivity {
         public void onBindViewHolder(ViewHolder holder, int position) {
             WeightEntry entry = historyList.get(position);
             holder.tvDate.setText(entry.date);
-            holder.tvWeight.setText(String.format("%s %s", entry.weight, getString(R.string.unit_kg)));
+            holder.tvWeight.setText(String.format(Locale.getDefault(), "%s %s", entry.weight, getString(R.string.unit_kg)));
 
-// Формируем строку замеров, если они есть
             SpannableStringBuilder sb = new SpannableStringBuilder();
             appendMeasurement(sb, getString(R.string.chest), entry.chest);
             appendMeasurement(sb, getString(R.string.waist), entry.waist);
             appendMeasurement(sb, getString(R.string.hips), entry.hips);
             appendMeasurement(sb, getString(R.string.bicep), entry.bicep);
-
 
             if (sb.length() > 0) {
                 holder.tvMeasurements.setVisibility(View.VISIBLE);
@@ -964,24 +862,16 @@ public class MainActivity extends AppCompatActivity {
             holder.btnDelete.setOnClickListener(v -> deleteEntry(entry.date));
         }
 
-
-        /**
-         * Вспомогательный метод для форматирования:
-         * "Название: " - обычный, "Значение " - жирный
-         */
         private void appendMeasurement(SpannableStringBuilder sb, String label, float value) {
             if (value > 0) {
-                // Если в строке уже что-то есть, добавим отступ
                 if (sb.length() > 0) {
                     sb.append("  ");
                 }
 
-                // 1. Добавляем обычный текст (название)
                 int startLabel = sb.length();
                 sb.append(label);
                 sb.append(" ");
 
-                // 2. Форматируем число: если 70.0 -> "70", если 70.5 -> "70.5"
                 String valueText;
                 if (value == (long) value) {
                     valueText = String.format(Locale.getDefault(), "%d ", (long) value);
@@ -989,14 +879,12 @@ public class MainActivity extends AppCompatActivity {
                     valueText = String.format(Locale.getDefault(), "%.1f ", value);
                 }
 
-                valueText += getString(R.string.unit_cm); // Добавляем единицы измерения
+                valueText += getString(R.string.unit_cm);
 
-                // 2. Добавляем значение
                 int startValue = sb.length();
                 sb.append(valueText);
                 int endValue = sb.length();
 
-                // 3. Делаем только значение жирным
                 sb.setSpan(
                         new StyleSpan(Typeface.BOLD),
                         startValue,
@@ -1022,7 +910,6 @@ public class MainActivity extends AppCompatActivity {
                 tvMeasurements = itemView.findViewById(R.id.tvMeasurements);
                 tvMeasurements.setTextColor(ColorUtils.blendARGB(getColor(R.color.primary), Color.BLACK, 0.3f));
                 btnDelete = itemView.findViewById(R.id.btnDelete);
-
             }
         }
     }
@@ -1039,7 +926,6 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             List<WeightEntry> entries = db.weightDao().getAllEntries();
             StringBuilder csvContent = new StringBuilder();
-            // Заголовок
             csvContent.append("date,weight,targetWeight,waist,chest,hips,bicep,goalType\n");
 
             for (WeightEntry e : entries) {
@@ -1054,17 +940,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try (OutputStream os = getContentResolver().openOutputStream(uri)) {
+                if (os == null) {
+                    throw new IOException("Unable to open output stream for export");
+                }
                 os.write(csvContent.toString().getBytes());
                 runOnUiThread(() -> Toast.makeText(this, getString(R.string.export_text), Toast.LENGTH_SHORT).show());
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "CSV export failed", e);
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.import_error), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
+
     private void openCsvFile() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/*"); // Некоторые файловые менеджеры плохо фильтруют CSV
+        intent.setType("text/*");
         startActivityForResult(intent, PICK_PDF_FILE);
     }
 
@@ -1073,34 +964,28 @@ public class MainActivity extends AppCompatActivity {
             try (InputStream is = getContentResolver().openInputStream(uri);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
 
-                String line;
-                String header = reader.readLine(); // Читаем заголовок
+                if (is == null) {
+                    throw new IOException("Unable to open input stream for import");
+                }
 
-                // Простейшая проверка: если заголовок пустой, файл скорее всего поврежден
+                String line;
+                String header = reader.readLine();
                 if (header == null) {
                     throw new IOException("Empty file");
                 }
 
                 int importedCount = 0;
-
                 while ((line = reader.readLine()) != null) {
-                    // Используем лимит -1 для split, чтобы видеть пустые колонки
                     String[] parts = line.split(",", -1);
-
-                    // Проверяем, что в строке есть хотя бы дата и вес
                     if (parts.length >= 2) {
                         try {
                             String date = parts[0].trim();
                             Float weightValue = safeParseFloat(parts[1]);
-
-
-                            // Если дата пустая или вес 0/null — это мусор, а не данные. Пропускаем.
                             if (date.isEmpty() || weightValue == null || weightValue <= 0) {
                                 continue;
                             }
                             WeightEntry entry = new WeightEntry(date, weightValue);
 
-                            // Парсим остальные поля (они могут быть null)
                             if (parts.length > 2) entry.targetWeight = safeParseFloat(parts[2]) != null ? safeParseFloat(parts[2]) : 0f;
                             if (parts.length > 3) entry.waist = safeParseFloat(parts[3]);
                             if (parts.length > 4) entry.chest = safeParseFloat(parts[4]);
@@ -1111,7 +996,6 @@ public class MainActivity extends AppCompatActivity {
                             db.weightDao().insert(entry);
                             importedCount++;
                         } catch (Exception rowException) {
-                            // Ошибка в конкретной строке — логируем и идем дальше
                             Log.e("IMPORT", "Ошибка в строке: " + line, rowException);
                         }
                     }
@@ -1119,12 +1003,11 @@ public class MainActivity extends AppCompatActivity {
 
                 final int finalCount = importedCount;
                 runOnUiThread(() -> {
-                    loadWeightForSelectedDate(); // Обновляем UI и графики
+                    loadWeightForSelectedDate();
                     Toast.makeText(this, getString(R.string.import_completed) + finalCount, Toast.LENGTH_SHORT).show();
                 });
 
             } catch (Exception e) {
-                // Если произошла общая ошибка (файл не читается, формат совсем не тот)
                 Log.e("IMPORT", "Общая ошибка импорта", e);
                 runOnUiThread(() -> {
                     Toast.makeText(this, getString(R.string.import_error), Toast.LENGTH_LONG).show();
@@ -1135,16 +1018,14 @@ public class MainActivity extends AppCompatActivity {
 
     private Float safeParseFloat(String value) {
         if (value == null || value.trim().isEmpty()) {
-            return null; // Важно: возвращаем null, а не 0
+            return null;
         }
         try {
-            // Заменяем запятую на точку на случай, если CSV открывали в Excel
             return Float.parseFloat(value.trim().replace(",", "."));
         } catch (NumberFormatException e) {
             return null;
         }
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
